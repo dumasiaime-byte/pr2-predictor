@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#10133c">
+<title>PR² Predictor</title>
+<style>
+:root {
+  --navy:#10133c; --navy2:#191c55; --blue:#347cf6; --cyan:#5ee7ff;
+  --purple:#8a58ff; --ink:#172044; --muted:#65708e; --line:#dce4f3;
+}
+* { box-sizing:border-box; }
+html,body { margin:0; min-height:100%; font-family:Inter,Segoe UI,Arial,sans-serif; }
+body {
+  color:#fff; background:
+  radial-gradient(ellipse at 8% 12%,rgba(60,89,255,.32),transparent 34%),
+  radial-gradient(ellipse at 95% 85%,rgba(152,55,255,.28),transparent 36%),
+  linear-gradient(145deg,#0c1032,#17194b 56%,#101333);
+  min-height:100vh; overflow-x:hidden;
+}
+body:before,body:after {
+  content:""; position:fixed; pointer-events:none; z-index:0; border-radius:50%;
+  width:390px;height:390px;filter:blur(2px);opacity:.22;
+}
+body:before {border:1px solid #5be5ff;right:-255px;top:-180px;box-shadow:0 0 0 18px #292e78,0 0 0 19px #5967ff,0 0 0 38px #20265f;}
+body:after {border:1px solid #b67aff;left:-280px;bottom:-230px;box-shadow:0 0 0 22px #3c2d88,0 0 0 23px #6955ff,0 0 0 46px #26235e;}
+main {position:relative;z-index:1; width:100%; min-height:100vh; padding:24px 16px 30px; display:flex;align-items:center;justify-content:center;}
+.screen {width:min(100%,440px); display:none; animation:appear .24s ease;}
+.screen.active {display:block;}
+@keyframes appear {from{opacity:.3;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.top-mark {display:flex;align-items:center;justify-content:center;gap:10px;margin:0 auto 17px;color:#dce9ff;font-weight:700;letter-spacing:2px;font-size:13px;}
+.mark {width:34px;height:34px;border:1px solid rgba(112,220,255,.75);border-radius:11px;display:grid;place-items:center;color:#74e9ff;background:rgba(54,106,255,.16);box-shadow:0 0 20px rgba(62,152,255,.24);}
+.panel {background:rgba(255,255,255,.97);color:var(--ink);border-radius:25px;padding:27px 23px;box-shadow:0 18px 50px rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.78);}
+.eyebrow {text-align:center;color:#586b9d;font-size:11px;font-weight:800;letter-spacing:2.2px;margin:0 0 10px;}
+h1 {font-size:clamp(28px,7vw,37px);line-height:1.1;text-align:center;margin:0;color:#172052;font-weight:850;letter-spacing:.3px;}
+.subtitle {text-align:center;color:#65708e;font-size:14px;line-height:1.6;margin:13px auto 22px;max-width:310px;}
+.accent-rule {width:55px;height:4px;border-radius:5px;background:linear-gradient(90deg,#3d8dff,#9d6bff);margin:17px auto 19px;}
+.purpose-preview {background:#f3f6ff;border:1px solid #e4eaff;border-radius:14px;padding:13px 14px;color:#536080;font-size:13px;line-height:1.55;margin:0 0 19px;}
+.purpose-preview strong {display:block;color:#26335f;font-size:12px;margin-bottom:3px;letter-spacing:.3px;}
+.btn {border:0;border-radius:13px;min-height:50px;width:100%;padding:13px 16px;font-size:14px;font-weight:800;letter-spacing:.3px;cursor:pointer;transition:transform .12s,filter .12s,box-shadow .12s;}
+.btn:active {transform:scale(.985);}
+.btn-primary {color:white;background:linear-gradient(105deg,#327bf6,#6655ee);box-shadow:0 8px 20px rgba(66,103,237,.28);}
+.btn-primary:hover {filter:brightness(1.06);}
+.btn-outline {color:#315cc0;background:#f3f6ff;border:1px solid #dce6ff;}
+.btn + .btn {margin-top:11px;}
+.small-note {font-size:11px;color:#7a84a0;text-align:center;line-height:1.5;margin:16px 0 0;}
+.screen-header {display:flex;align-items:center;justify-content:space-between;margin:0 2px 14px;}
+.back-top {background:rgba(255,255,255,.12);color:#eef5ff;border:1px solid rgba(177,212,255,.35);border-radius:11px;padding:9px 12px;font-size:12px;font-weight:700;cursor:pointer;}
+.screen-label {font-size:12px;font-weight:800;letter-spacing:1.7px;color:#e1eaff;}
+.calc-panel {padding:23px 20px 20px;}
+.calc-heading {text-align:center;font-size:23px;color:#18214e;font-weight:850;margin:0;}
+.calc-sub {text-align:center;color:#76809b;font-size:12px;margin:7px 0 17px;}
+.field-list {display:grid;gap:11px;}
+.field label {display:block;font-size:12px;font-weight:750;color:#39466d;margin:0 0 6px 2px;}
+.input-wrap {position:relative;}
+.field input {display:block;width:100%;height:45px;border:1.5px solid var(--line);border-radius:11px;background:#f8faff;padding:0 13px;color:#1b2854;font-size:15px;outline:none;transition:border-color .15s,box-shadow .15s;}
+.field input:focus {border-color:#4d8dfb;box-shadow:0 0 0 3px rgba(77,141,251,.13);background:#fff;}
+.field input::placeholder {color:#a0a9bf;font-size:12px;}
+.help {font-size:10px;color:#8b94ab;margin:5px 2px 0;}
+.calc-action {margin-top:17px;}
+.result {display:none;margin-top:15px;border:1px solid #cddcfb;border-radius:14px;background:linear-gradient(135deg,#f1f6ff,#f8f3ff);padding:14px;text-align:center;}
+.result.show {display:block;}
+.result-title {font-size:11px;font-weight:800;letter-spacing:1.6px;color:#63739b;}
+.result-value {font-size:36px;font-weight:900;color:#2e59c4;margin:4px 0 2px;line-height:1.2;}
+.result-note {font-size:11px;color:#707c9b;line-height:1.5;}
+.calc-bottom {margin-top:15px;}
+.foot {text-align:center;color:rgba(221,231,255,.7);font-size:10px;line-height:1.5;margin:14px 12px 0;}
+.modal-backdrop {position:fixed;inset:0;background:rgba(5,8,31,.72);display:none;align-items:center;justify-content:center;padding:20px;z-index:5;}
+.modal-backdrop.open {display:flex;}
+.modal {width:min(100%,420px);max-height:85vh;overflow:auto;background:#fff;color:var(--ink);border-radius:21px;padding:24px 22px;box-shadow:0 20px 60px rgba(0,0,0,.35);}
+.modal h2 {font-size:20px;margin:0 0 12px;color:#19214e;text-align:center;}
+.modal p {font-size:13px;line-height:1.65;color:#536080;margin:0 0 12px;}
+.modal .btn {margin-top:5px;}
+@media (max-width:380px) {
+ main {padding:15px 12px 22px;align-items:flex-start;}
+ .screen {margin:auto;}
+ .panel {padding:23px 17px;border-radius:21px;}
+ .calc-panel {padding:20px 15px 17px;}
+ .field-list {gap:9px;}
+ .field input {height:43px;}
+}
+@media (prefers-reduced-motion:reduce) {*{animation:none!important;transition:none!important;}}
+</style>
+</head>
+<body>
+<main>
+  <section id="welcome" class="screen active" aria-label="Welcome screen">
+    <div class="top-mark"><span class="mark" aria-hidden="true">✦</span><span>STUDENT RESEARCH TOOL</span></div>
+    <div class="panel">
+      <p class="eyebrow">WELCOME TO</p>
+      <h1>PR² PREDICTOR</h1>
+      <div class="accent-rule"></div>
+      <p class="subtitle">Estimate your Practical Research 2 grade using your selected subject grades.</p>
+      <div class="purpose-preview">
+        <strong>ABOUT THIS APPLICATION</strong>
+        An educational tool based on a student research study. Enter your subject grades to view an estimated PR² result.
+      </div>
+      <button class="btn btn-outline" id="purposeBtn" type="button">WHAT'S THE PURPOSE?</button>
+      <button class="btn btn-primary" id="startBtn" type="button">START PREDICTING&nbsp; →</button>
+      <p class="small-note">For educational and research purposes only.</p>
+    </div>
+    <p class="foot">PR² Predictor · Academic grade estimation</p>
+  </section>
+
+  <section id="calculator" class="screen" aria-label="Calculator screen">
+    <div class="screen-header">
+      <button class="back-top" id="backBtn" type="button">← BACK TO HOME</button>
+      <span class="screen-label">PR² CALCULATOR</span>
+    </div>
+    <div class="panel calc-panel">
+      <h2 class="calc-heading">PR² PREDICTOR</h2>
+      <p class="calc-sub">Enter your grades in the five selected subjects.</p>
+      <form id="gradeForm" novalidate>
+        <div class="field-list">
+          <div class="field">
+            <label for="oral">Oral Communication</label>
+            <input id="oral" name="oral" type="number" min="65" max="100" step="any" inputmode="decimal" placeholder="Enter grade (65–100)" required>
+          </div>
+          <div class="field">
+            <label for="statistics">Statistics and Probability</label>
+            <input id="statistics" name="statistics" type="number" min="65" max="100" step="any" inputmode="decimal" placeholder="Enter grade (65–100)" required>
+          </div>
+          <div class="field">
+            <label for="eapp">English for Academic and Professional Purposes (EAPP)</label>
+            <input id="eapp" name="eapp" type="number" min="65" max="100" step="any" inputmode="decimal" placeholder="Enter grade (65–100)" required>
+          </div>
+          <div class="field">
+            <label for="math">General Mathematics</label>
+            <input id="math" name="math" type="number" min="65" max="100" step="any" inputmode="decimal" placeholder="Enter grade (65–100)" required>
+          </div>
+          <div class="field">
+            <label for="pr1">Practical Research 1</label>
+            <input id="pr1" name="pr1" type="number" min="65" max="100" step="any" inputmode="decimal" placeholder="Enter grade (65–100)" required>
+          </div>
+        </div>
+        <p class="help">Enter a grade from 65 to 100 for each subject.</p>
+        <div class="calc-action">
+          <button class="btn btn-primary" type="submit">CALCULATE PREDICTED GRADE</button>
+        </div>
+      </form>
+      <div id="result" class="result" aria-live="polite">
+        <div class="result-title">PREDICTED PR² GRADE</div>
+        <div id="resultValue" class="result-value">—</div>
+        <div class="result-note">This is an estimate from the research equation, not an official grade.</div>
+      </div>
+      <div class="calc-bottom">
+        <button class="btn btn-outline" id="clearBtn" type="button">CLEAR</button>
+      </div>
+    </div>
+    <p class="foot">Predictions do not replace teacher-assigned grades.</p>
+  </section>
+</main>
+
+<div id="purposeModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <h2 id="modalTitle">What's the Purpose?</h2>
+    <p>This application was developed as part of our research paper entitled <strong>“Selected Grade 11 Subjects as Predictor on the Academic Performance in Practical Research 2.”</strong></p>
+    <p>Our study examines how students’ grades in English for Academic and Professional Purposes (EAPP), Practical Research 1, General Mathematics, Statistics and Probability, and Oral Communication can help predict their performance in Practical Research 2 (PR²).</p>
+    <p>This application uses the regression equation from the research to calculate a predicted PR² grade based on the grades entered in these five subjects. It is intended for educational and research purposes only and is not an official grading system or a replacement for teachers’ assessments.</p>
+    <button class="btn btn-primary" id="closeModal" type="button">OK</button>
+  </div>
+</div>
+<script>
+(function(){
+  const welcome=document.getElementById('welcome');
+  const calculator=document.getElementById('calculator');
+  const modal=document.getElementById('purposeModal');
+  const form=document.getElementById('gradeForm');
+  const result=document.getElementById('result');
+  const resultValue=document.getElementById('resultValue');
+  const fields=['oral','statistics','eapp','math','pr1'].map(id=>document.getElementById(id));
+  function showScreen(name){
+    const isCalc=name==='calculator';
+    welcome.classList.toggle('active',!isCalc);
+    calculator.classList.toggle('active',isCalc);
+    if(isCalc) window.scrollTo({top:0,behavior:'auto'});
+  }
+  document.getElementById('startBtn').addEventListener('click',()=>showScreen('calculator'));
+  document.getElementById('backBtn').addEventListener('click',()=>showScreen('welcome'));
+  document.getElementById('purposeBtn').addEventListener('click',()=>modal.classList.add('open'));
+  document.getElementById('closeModal').addEventListener('click',()=>modal.classList.remove('open'));
+  modal.addEventListener('click',e=>{if(e.target===modal) modal.classList.remove('open');});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape') modal.classList.remove('open');});
+  form.addEventListener('submit',e=>{
+    e.preventDefault();
+    let valid=true;
+    fields.forEach(input=>{
+      const value=input.value.trim()===''?NaN:Number(input.value);
+      const ok=Number.isFinite(value)&&value>=65&&value<=100;
+      input.setAttribute('aria-invalid',String(!ok));
+      input.style.borderColor=ok?'':'#d94760';
+      if(!ok) valid=false;
+    });
+    if(!valid){alert('Please enter a valid grade from 65 to 100 in all five fields.');return;}
+    const [oral,statistics,eapp,math,pr1]=fields.map(input=>Number(input.value));
+    const predicted=58.228+(0.149*oral)+(0.216*statistics)+(0.152*eapp)-(0.102*math)-(0.055*pr1);
+    resultValue.textContent=predicted.toFixed(3);
+    result.classList.add('show');
+  });
+  document.getElementById('clearBtn').addEventListener('click',()=>{
+    form.reset(); result.classList.remove('show'); resultValue.textContent='—';
+    fields.forEach(input=>{input.removeAttribute('aria-invalid');input.style.borderColor='';});
+  });
+})();
+</script>
+</body>
+</html>
